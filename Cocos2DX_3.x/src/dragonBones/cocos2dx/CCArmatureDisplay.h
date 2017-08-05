@@ -5,102 +5,116 @@
 #include "cocos2d.h"
 
 DRAGONBONES_NAMESPACE_BEGIN
-
-class CCArmatureDisplay : public cocos2d::Node, public virtual IArmatureDisplay
+/**
+* @inheritDoc
+*/
+class CCArmatureDisplay : public cocos2d::Node, public virtual IArmatureProxy
 {
-public:
-    /** @private */
-    static CCArmatureDisplay* create();
+	DRAGONBONES_DISALLOW_COPY_AND_ASSIGN(CCArmatureDisplay)
 
 public:
-    /** @private */
-    Armature* _armature;
+	/**
+	* @private
+	*/
+	static CCArmatureDisplay* create();
 
 protected:
-    cocos2d::EventDispatcher* _dispatcher;
+	Armature* _armature;
+	cocos2d::EventDispatcher* _dispatcher;
 
 protected:
-    CCArmatureDisplay();
-    virtual ~CCArmatureDisplay();
-
-private:
-    DRAGONBONES_DISALLOW_COPY_AND_ASSIGN(CCArmatureDisplay);
-
-public:
-    /** @private */
-    virtual void _onClear() override;
-    /** @private */
-    virtual void _dispatchEvent(EventObject* value) override;
-    /** @private */
-    virtual void dispose() override;
-    /** @private */
-    virtual void update(float passedTime) override;
+	CCArmatureDisplay() :
+		_armature(nullptr),
+		_dispatcher(nullptr)
+	{
+		_dispatcher = new cocos2d::EventDispatcher();
+		this->setEventDispatcher(_dispatcher);
+		// _dispatcher->setEnabled(true);
+		// 默认不开启，需要手动开启(浪费性能)
+	}
+	virtual ~CCArmatureDisplay() {}
 
 public:
-    virtual void advanceTimeBySelf(bool on) override;
-    
-    void addEvent(const std::string& type, const std::function<void(EventObject*)>& callback);
-    void removeEvent(const std::string& type);
-
-    inline bool hasEvent(const std::string& type) const override
-    {
-        return _eventCallback || _dispatcher->isEnabled();
-    }
-
-    inline Armature* getArmature() const override 
-    {
-        return _armature;
-    }
-
-    virtual Animation& getAnimation() const override 
-    {
-        return _armature->getAnimation();
-    }
-
-CC_CONSTRUCTOR_ACCESS:
-    // methods added for js bindings
-    void setEventCallback(const std::function<void(EventObject*)>& callback) {
-        this->_eventCallback = callback;
-    }
-    inline bool hasEventCallback() { return this->_eventCallback ? true : false; }
-    inline void clearEventCallback() { this->_eventCallback = nullptr; }
-
-private:
-    // added for js bindings
-    std::function<void(EventObject*)> _eventCallback;
+	/**
+	* @inheritDoc
+	*/
+	virtual void _init(Armature* armature) override;
+	/**
+	* @inheritDoc
+	*/
+	virtual void clear() override;
+	/**
+	* @inheritDoc
+	*/
+	virtual void dispose(bool disposeProxy = true) override;
+	/**
+	* @inheritDoc
+	*/
+	virtual void debugUpdate(bool isEnabled) override;
+	/**
+	* @inheritDoc
+	*/
+	virtual void _dispatchEvent(const std::string& type, EventObject* value) override;
+	/**
+	* @inheritDoc
+	*/
+	virtual void addEvent(const std::string& type, const std::function<void(EventObject*)>& listener) override;
+	/**
+	* @inheritDoc
+	*/
+	virtual void removeEvent(const std::string& type, const std::function<void(EventObject*)>& listener) override;
+	/**
+	* @inheritDoc
+	*/
+	inline virtual bool hasEvent(const std::string& type) const override
+	{
+		return _dispatcher->isEnabled();
+	}
+	/**
+	* @inheritDoc
+	*/
+	inline virtual Armature* getArmature() const override
+	{
+		return _armature;
+	}
+	/**
+	* @inheritDoc
+	*/
+	inline virtual Animation* getAnimation() const override
+	{
+		return _armature->getAnimation();
+	}
 };
-
-/** @private */
+/**
+* @private
+*/
 class DBCCSprite : public cocos2d::Sprite
 {
+	DRAGONBONES_DISALLOW_COPY_AND_ASSIGN(DBCCSprite)
+
 public:
-    /** @private */
-    static DBCCSprite* create();
+	/**
+	* @private
+	*/
+	static DBCCSprite* create();
 
 protected:
-    DBCCSprite();
-    virtual ~DBCCSprite();
-
-private:
-    DRAGONBONES_DISALLOW_COPY_AND_ASSIGN(DBCCSprite);
-
-    /**
-    * Modify for polyInfo rect
-    */
-    bool _checkVisibility(const cocos2d::Mat4& transform, const cocos2d::Size& size, const cocos2d::Rect& rect);
+	DBCCSprite() {}
+	virtual ~DBCCSprite() {}
+	/**
+	* Modify for polyInfo rect
+	*/
+	bool _checkVisibility(const cocos2d::Mat4& transform, const cocos2d::Size& size, const cocos2d::Rect& rect);
 
 public:
-    /**
-     * Modify for polyInfo rect
-     */
-    virtual void draw(cocos2d::Renderer* renderer, const cocos2d::Mat4& transform, uint32_t flags) override;
-    /**
-     * Modify for cocos2dx 3.7, 3.8, 3.9
-     */
-    cocos2d::PolygonInfo& getPolygonInfoModify();
-#if COCOS2D_VERSION >= 0x00031400
-    void setRenderMode(RenderMode m);
-#endif
+	/**
+	* Modify for polyInfo rect
+	*/
+	virtual void draw(cocos2d::Renderer* renderer, const cocos2d::Mat4& transform, uint32_t flags) override;
+	/**
+	* Modify for cocos2dx 3.7, 3.8, 3.9
+	*/
+	cocos2d::PolygonInfo& getPolygonInfoModify();
 };
 
 DRAGONBONES_NAMESPACE_END
